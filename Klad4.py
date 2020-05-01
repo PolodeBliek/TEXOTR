@@ -39,19 +39,22 @@ LogOutput   = True
 Complex     = True
 Demo        = True
 PklOutput   = True
-file = 'Example.png'
+file = 'Example8.png'
 
 
 
 
 def Main(file, LogOutput, Complex, Demo, PklOutput):
     s_0 = time.time()
-    image = img_as_float(io.imread("ImExamples/" + file))
-    (height,width, _) = image.shape
-    Table = img_as_float(rgb2gray(image)) #Convert Original Image to Grayscale
+    image = np.asarray(io.imread("ImExamples/" + file)) #img_as_float
+    disp_img = img_as_float(io.imread("ImExamples/" + file))
+    Table = (0.3 * image[:, :, 0] + 0.59 * image[:, :, 1] + 0.11 * image[:, :, 2])/255    
     if Demo:
         fig, (ax0, ax1) = plt.subplots(nrows=1, ncols=2, figsize=(16, 5))
     s_1 = time.time()
+    height, width = Table.shape
+    height = height
+    width = width
 
     
 
@@ -61,55 +64,75 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
     EmptyVerSlices = []
     AllPixels = []
 
-    VerSlices = [[] for x in range(width)]
     #for index in range(width):
     #    VerSlices.append([])
+    #for index in range(height):
+    #    HorSlices.append(Table[index].tolist())
+    #    AllPixels = AllPixels + Table[index].tolist()
+    #    for index2 in range(width):
+    #        VerSlices[index2].append(Table[index, index2])
     for index in range(height):
-        HorSlices.append(Table[index].tolist())
-        AllPixels = AllPixels + Table[index].tolist()
-        for index2 in range(width):
-            VerSlices[index2].append(Table[index, index2])
+        HorSlices.append(list(Table[index]))
+    s_1a = time.time()
+    for index in range(width):
+        VerSlices.append(Table[:, index])
+    s_1b = time.time()
 
     for index in range(height):
         if max(HorSlices[index])-min(HorSlices[index])<0.1:
             EmptyHorSlices.append(index)
+    s_1c = time.time()
     for index in range(width):
         if max(VerSlices[index])-min(VerSlices[index])<0.1:
             EmptyVerSlices.append(index)
     s_2 = time.time()
 
 
-    NegColor = max(AllPixels)
+    NegColor = np.amax(Table)
 
     NeutVerSums = [-sum(x) for x in zip(*HorSlices)]
     NeutHorSums = [-sum(x) for x in zip(*VerSlices)]
     NeutVerSums2 = [x-min(NeutVerSums) for x in NeutVerSums]
     VerSums = [1.0 - (1/height)*sum(x) for x in zip(*HorSlices)]
     HorSums = [1.0 - (1/width)*sum(x) for x in zip(*VerSlices)]
+    s_2a = time.time()
     VerSums3 = []
-    Step = 30
-    for index in range(0, len(VerSums)-Step, Step):
+    HorSums3 = []
+    VStep = math.floor(width/20)
+    for index in range(0, len(VerSums)-VStep, VStep):
         Sum = 0
-        for index2 in range(0, Step):
+        for index2 in range(0, VStep):
             Sum += VerSums[index + index2]
-        VerSums3.append(Sum/Step)
-    CutOff = 0.2 * max(VerSums3)
-    VerSums4 = []
-    for x in VerSums3:
-        if x < CutOff:
-            VerSums4.append(True)
-        else:
-            VerSums4.append(False)
-    Output2 = []
-    Value = VerSums4[0]
-    Output2.append(Value)
-    for x in VerSums4:
-        if x == Value:
-            pass
-        else:
-            Value = x
-            Output2.append(x)
+        VerSums3.append(Sum/VStep)
+    HStep = math.floor(height/20)
+    for index in range(0, len(HorSums)-HStep, HStep):
+        Sum = 0
+        for index2 in range(0, HStep):
+            Sum += HorSums[index + index2]
+        HorSums3.append(Sum/HStep)
+    s_2b = time.time()
+    CutOff = 0.3 * max(VerSums3)
+    VerSums4 = np.asarray(copy.deepcopy(VerSums3)) < CutOff
+    VerSums4 = list(VerSums4)
+    VerSums4 = list(map(int, VerSums4))
+    VerSums4 = list(np.ediff1d(VerSums4))
+    HCutOff = 0.2 * max(VerSums3)
+    HorSums4 = np.asarray(copy.deepcopy(HorSums3)) < HCutOff
+    HorSums4 = list(HorSums4)
+    HorSums4 = list(map(int, HorSums4))
+    HorSums4 = list(np.ediff1d(HorSums4))
+    Peaks2, _ = find_peaks(VerSums3, height = 0.5*max(VerSums3))
+
+
+
+    s_2c = time.time()
+    print(VerSums4)
+    print(VerSums4.count(-1) + 1)
+
     s_3 = time.time()
+
+
+
 
     PotRowPeakHeight = max(HorSums)*0.5 if max(HorSums)*0.5 > 0.10 else 0.10
     PotColPeakHeight = max(VerSums)*0.5 if max(VerSums)*0.5 > 0.10 else 0.10
@@ -318,20 +341,20 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
     s_6 = time.time()
 
 
-    Plot2 = VerSums3
+    Plot2 = VerSums2
     Plot1 = NeutVerSums2    
     if Demo:
-        ax0.imshow(Table, vmin=image.min(), vmax=image.max(), cmap='gray')
+        ax0.imshow(disp_img, vmin=image.min(), vmax=image.max(), cmap='gray')
         #for index in range(len(Markers)):
         #    ax0.Rectangle((Markers[index][0][0], Markers[index][0][1]), Markers[index][1][0]-Markers[0][0], Markers[index][1][1] - Markers[index][0][1])
-        #for index in range(0, len(Rows)):
-        #     ax0.axhline(Rows[index], color="r")
-        #for index1 in range(0, len(Columns)):
-        #    ax0.axvline(Columns[index1], color="r")
-        #for index in range(len(NegRows)):
-        #    ax0.axhline(NegRows[index], color = "blue")
-        #for index in range(len(NegCols)):
-        #    ax0.axvline(NegCols[index], color = "blue")
+        for index in range(0, len(Rows)):
+             ax0.axhline(Rows[index], color="r")
+        for index1 in range(0, len(Columns)):
+            ax0.axvline(Columns[index1], color="r")
+        for index in range(len(NegRows)):
+            ax0.axhline(NegRows[index], color = "blue")
+        for index in range(len(NegCols)):
+            ax0.axvline(NegCols[index], color = "blue")
         #ax0.set_title('Table')
         #ax0.axis('off')
         #for index in Zeros:
@@ -370,6 +393,10 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
         print("TIMER")
         print("0-1 \t" + str(s_1 - s_0))
         print("1-2 \t" + str(s_2 - s_1))
+        print("1 - 1a\t" + str(s_1a - s_1))
+        print("1a - 1b\t" + str(s_1b - s_1a))
+        print("1b - 1c\t" + str(s_1c - s_1b))
+        print("1c - 2\t" + str(s_2 - s_1c))
         print("2-3 \t" + str(s_3 - s_2))
         print("3-4 \t" + str(s_4 - s_3))
         print("4-5 \t" + str(s_5 - s_4))
