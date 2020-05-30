@@ -22,7 +22,7 @@ from Main import Main
 Outputs = []
 Files = ["Example.png", "Example3.png", "Example4.png", "Example5.png", "Example6.png", "Example7.png", "Example8.png", "Example9.png", "Example10.png", "Example11.png", "Example12.png", "Example13.png", "Example14.png", "Example15.png", "Example16.png"]
 
-FilestoRun = "Example8.png"
+FilestoRun = Files
 
 Answers = ["02 08", "03 11", "02 10", "04 05", "02 05", "COMPLEX", "03 07", "03 04", "COMPLEX", "COMPLEX", "05 09", "03 06", "03 06", "02 02", "02 02"]
 CompleteEvaluation = False
@@ -34,15 +34,19 @@ if type(FilestoRun) == str:
 print(FilestoRun)
 
 for file in FilestoRun:
-    Output = Main(file, False, True, True, False)
+    if len(FilestoRun) == 1:
+        Output = Main(file, False, True, True, False)
     try:
-        pass
-        #Output = Main(file, False, True, True, False)
+        if len(FilestoRun) == 1:
+            pass
+        else:
+            Output = Main(file, False, True, True, False)
     except:
         Output = "FAILURE"
     Outputs.append(Output)
     if ConsoleOutput:
-        print(Output)
+        pass
+        # print(Output)
 if CompleteEvaluation:
     print("\n")
     print("################")
