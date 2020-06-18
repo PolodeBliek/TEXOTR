@@ -26,7 +26,7 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
     disp_img = img_as_float(io.imread("ImExamples/" + file))
     Table = (0.3 * image[:, :, 0] + 0.59 * image[:, :, 1] + 0.11 * image[:, :, 2])/255    
     if Demo:
-        fig, (ax0) = plt.subplots(nrows=1, ncols=1, figsize=(6,4))
+        fig, (ax0, ax1) = plt.subplots(nrows=1, ncols=2, figsize=(16,4))
     s_1 = time.time()
     height, width = Table.shape
     height = height
@@ -303,6 +303,7 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
     #Peaks2, _ = find_peaks(VerSums3, height = 0.5*max(VerSums3))
     
     Slice = True
+    NPeaks7, _ = find_peaks(VerSums7, height = 0.5*max(VerSums7))
     if Demo:
         rect2 = patches.Rectangle((200, 15), 40, 30, linewidth = 1, edgecolor = "red", fill = False)
         rect = patches.Rectangle((20, 15), 40, 30, linewidth = 1, edgecolor = 'r', fill = False)
@@ -318,46 +319,27 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
         # for index in range(0, len(Rows)):
         #     for index2 in range(0, len(Columns)):
         #         ax0.plot(Columns[index2], Rows[index], "x", color = "red")
-        files = os.listdir("ImOutput")
-        for fname in files:
-            os.remove("ImOutput/" + fname)
-        for index in range(0, len(Columns) - 1):
-            for index2 in range(0, len(Rows) - 1):
-                Box = patches.Rectangle((Columns[index], Rows[index2]), Columns[index + 1] - Columns[index], Rows[index2 + 1] - Rows[index2], edgecolor = "red", fill = False)
-                ImBox = 255*Table[Rows[index2]:Rows[index2 + 1], Columns[index]:Columns[index + 1]]
-                ax0.add_patch(Box)
-                name = str(index) + "_" + str(index2)
-                im = Image.fromarray(ImBox)
-                im = im.convert('L')
-                im.save("ImOutput/" + name+".png")
-            # im = Image.fromarray(Box)
-            # im = im.convert('RGB')
+        # files = os.listdir("ImOutput")
+        # for fname in files:
+        #     os.remove("ImOutput/" + fname)
+        # for index in range(0, len(Columns) - 1):
+        #     for index2 in range(0, len(Rows) - 1):
+        #         Box = patches.Rectangle((Columns[index], Rows[index2]), Columns[index + 1] - Columns[index], Rows[index2 + 1] - Rows[index2], edgecolor = "red", fill = False)
+        #         ImBox = 255*Table[Rows[index2]:Rows[index2 + 1], Columns[index]:Columns[index + 1]]
+        #         ax0.add_patch(Box)
+        #         name = str(index) + "_" + str(index2)
+        #         im = Image.fromarray(ImBox)
+        #         im = im.convert('L')
+        #         im.save("ImOutput/" + name+".png")
 
 
         ax0.set_xlabel(file)
-        # ax2.plot(VerSums2, color = "black")
-        # ax2.set_ylim(0, 2*max(VerSums2))
-        # ax3.plot(VerSums7, color = "black")
-        # ax3.set_ylim(0, 2*max(VerSums7))
-        # for x in Peaks7:
-        #     ax3.plot(x+1, VerSums7[x+1], "x", color = "red")
-        # for x in NPeaks7:
-        #     ax3.plot(x+1, VerSums7[x+1], "x", color = "blue")
-        # XPeaks, _ = find_peaks(VerSums7, height = 0.5*(max(VerSums7) - min(VerSums7)) + min(VerSums7))
-        # for x in XPeaks:
-        #     ax3.plot(x, VerSums7[x], "x", color = "green")
-        # for x in Peaks3:
-        #     ax1.plot(x, VerSums3[x], "x", color = "red")
-        # for x in Peaks7:
-        #     ax2.plot(x, VerSums7[x], "x", color = "red")
-        # for x in Peaks8:
-        #     ax3.plot(x, VerSums8[x], "x", color = "red")
-        # ax1.set_xlabel("VerSums")
-        # ax2.set_xlabel("VerSums2")
-        # ax3.set_xlabel("VerSums7")
-        # NPeaks7, _ = find_peaks(VerSums7, height = 0.5*max(VerSums7))
-        # for x in NPeaks7:
-        #     ax3.plot(x, VerSums7[x], "x", color = "red")
+        ax1.plot(VerSums7, color = "black")
+        ax1.set_ylim(0, 2*max(VerSums7))
+        XPeaks, _ = find_peaks(VerSums7, height = 0.5*(max(VerSums7) - min(VerSums7)) + min(VerSums7))
+        ax1.set_xlabel("VerSums")
+        for x in NPeaks7:
+            ax1.plot(x, VerSums7[x], "x", color = "blue")
         #axb.set_ylim(0, 2*max(VerSums2))
         ##Rows2 = Rows[1:]
         ##for index in Rows2:
@@ -374,11 +356,5 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
         plt.show()
         fig.tight_layout()
     
-    
-
-
-
-
-    s_2c = time.time()
-    s_3 = time.time()
-
+    Output = "%02d" % len(NPeaks7) 
+    return Output
