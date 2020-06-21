@@ -27,11 +27,13 @@ Files = ["Example.png", "Example3.png", "Example4.png", "Example5.png", "Example
 Answers = ["02 08", "03 11", "02 10", "04 05", "02 05", "03 07", "03 04", "03 00", "10 00", "03 06", "03 06", "02 02", "02 02"]
 Failures = []
 Errors = []
+Times = []
 t_begin = time.time()
 for index in tqdm.tqdm(range(0, len(Files))):
     file = Files[index]
     try:
         Output = Main(file, False, True, False, False)
+        Times.append(pickle.load(open("Times.pkl", "rb")))
         if not(Output == Answers[index][0:2]):
             Failures.append(file)
     except:
@@ -45,4 +47,19 @@ print("ERRORS  :\t", len(Errors))
 for error in Errors:
     print("\t", error)
 print("TOTAL TIME:\t", t_end - t_begin)
+sys.stdout.write("\nSHOW TIMES? (y/n)")
+sys.stdout.flush()
+TimesAnswer = input()
+TimesAnswer = True if TimesAnswer == "y" else False
+if TimesAnswer:
+    TimesResult = [0, ] * len(Times[0])
+    for element in Times:
+        for index in range(0, len(element)):
+            TimesResult[index] += element[index]
+    fig, (ax0) = plt.subplots(nrows = 1, ncols = 1, figsize = (16, 4))
+    ax0.set_xlabel("Times")
+    ax0.plot(TimesResult)
+    ax0.set_ylim(0, 1.5*max(TimesResult))
+    plt.show()
+    fig.tight_layout()
 

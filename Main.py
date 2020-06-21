@@ -5,7 +5,7 @@ import matplotlib.patches as patches
 import copy
 import os
 #import itertools
-#import pickle
+import pickle
 import time
 from PIL import Image
 
@@ -20,14 +20,15 @@ from skimage.exposure import histogram
 import more_itertools as mit
 import math
 
-def Main(file, LogOutput, Complex, Demo, PklOutput):
-    s_0 = time.time()
+def Main(file, LogOutput, Complex, Demo, PklOutput, timer = False):
+    s = []
+    s.append(time.time()) #0
     image = np.asarray(io.imread("ImExamples/" + file)) #img_as_float
     disp_img = img_as_float(io.imread("ImExamples/" + file))
     Table = (0.3 * image[:, :, 0] + 0.59 * image[:, :, 1] + 0.11 * image[:, :, 2])/255    
     if Demo:
         fig, (ax0, ax1) = plt.subplots(nrows=1, ncols=2, figsize=(16,4))
-    s_1 = time.time()
+    s.append(time.time()) #1
     height, width = Table.shape
     height = height
     width = width
@@ -39,22 +40,17 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
     EmptyHorSlices = []
     EmptyVerSlices = []
     AllPixels = []
-
     for index in range(height):
         HorSlices.append(list(Table[index]))
-    s_1a = time.time()
     for index in range(width):
         VerSlices.append(Table[:, index])
-    s_1b = time.time()
-
     for index in range(height):
         if max(HorSlices[index])-min(HorSlices[index])<0.1:
             EmptyHorSlices.append(index)
-    s_1c = time.time()
     for index in range(width):
         if max(VerSlices[index])-min(VerSlices[index])<0.1:
             EmptyVerSlices.append(index)
-    s_2 = time.time()
+    s.append(time.time()) #2
 
 
     NegColor = np.amax(Table)
@@ -70,6 +66,7 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
 
     PotCol2 = []
     PotRow2 = []
+    s.append(time.time()) #3
 
     for index in range(len(PotCol)):
         PotColPeaks, _ = find_peaks(VerSlices[PotCol[index]], height = min(VerSlices[PotCol[index]]) + (max(VerSlices[PotCol[index]])-min(VerSlices[PotCol[index]]))*0.5)
@@ -87,6 +84,7 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
             PotRow2.append(PotRow[index])
         else:
             pass
+    s.append(time.time()) #4
 
 
     Columns = PotCol2
@@ -114,15 +112,11 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
                 HorSums2[x + x2] = 0
             except:
                 pass
+    s.append(time.time()) #5
 
 
-    s_2a = time.time()
-    VerSums3 = []
     VerSums7 = []
-    VerSums8 = []
-    HorSums3 = []
     HorSums7 = []
-    HorSums8 = []
     VerSums4 = copy.deepcopy(VerSums2)
     HorSums4 = copy.deepcopy(HorSums2)
     
@@ -132,9 +126,7 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
     Zeroes.sort()
     #Determining Charachterwidth by using the height of charachter lines from HorSums
     CharachterWidth = math.floor(0.75*Zeroes[1])
-    Fac1 = 1.75 
     Fac2 = 1.50
-    Fac3 = 1.25
     VerSums5 = []
     HorSums5 = []
     if len(Columns) != 0:
@@ -151,147 +143,67 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
         VerSums5 = copy.deepcopy(VerSums4)
     if len(Rows) != 0:
         for SubList in HorSums5:
-            HStep1 = math.floor(Fac1 * len(SubList))
             HStep2 = math.floor(Fac2 * len(SubList))
-            HStep3 = math.floor(Fac3 * len(SubList))
-            HStep1 = 3 if HStep1 == 0 else HStep1
             HStep2 = 3 if HStep2 == 0 else HStep2
-            HStep3 = 3 if HStep3 == 0 else HStep3
-            for index in range(0, len(SubList) - HStep1, HStep1):
-                Sum = 0
-                for index2 in range(0, HStep1):
-                    Sum += SubList[index + index2]
-                HorSums3.append(Sum/HStep1)
             for index in range(0, len(SubList) - HStep2, HStep2):
                 Sum = 0
                 for index2 in range(0, HStep2):
                     Sum += SubList[index + index2]
                 HorSums7.append(Sum/HStep2)
-            for index in range(0, len(SubList) - HStep3, HStep3):
-                Sum = 0
-                for index2 in range(0, HStep3):
-                    Sum += SubList[index + index2]
-                HorSums8.append(Sum/HStep3)
+    s.append(time.time()) #6
 
 
-    Peaks3 = []
     Peaks7 = []
-    Peaks8 = []
     NPeaks7 = []
     if len(Columns) != 0:
-        trail3 = len(VerSums3)
         trail7 = len(VerSums7)
-        trail8 = len(VerSums8)
         VerSumsT = []
         if len(VerSums5[1]) < 1.5 * CharachterWidth:
             VerSums5 = VerSums5[1:]
         if len(VerSums5[-1]) < 1.5 * CharachterWidth:
             VerSums5 = VerSums5[:-1]
         for SubList in VerSums5:
-            SubList3 = []
             SubList7 = []
-            SubList8 = []
-            VStep1 = math.floor(Fac1 * CharachterWidth)
             VStep2 = math.floor(Fac2 * CharachterWidth)
-            VStep3 = math.floor(Fac3 * CharachterWidth)
-            VStep1 = 3 if VStep1 == 0 else VStep1
             VStep2 = 3 if VStep2 == 0 else VStep2
-            VStep3 = 3 if VStep3 == 0 else VStep3
-            for index in range(0, len(SubList) - VStep1, VStep1):
-                Sum = 0
-                for index2 in range(0, VStep1):
-                    Sum += SubList[index + index2]
-                #VerSums3.append(Sum/VStep1)
-                SubList3.append(Sum/VStep1)
             for index in range(0, len(SubList) - VStep2, VStep2):
                 Sum = 0
                 for index2 in range(0, VStep2):
                     Sum += SubList[index + index2]
-                #VerSums7.append(Sum/VStep2)
                 SubList7.append(Sum/VStep2)
-            for index in range(0, len(SubList) - VStep3, VStep3):
-                Sum = 0
-                for index2 in range(0, VStep3):
-                    Sum += SubList[index + index2]
-                #VerSums8.append(Sum/VStep3)
-                SubList8.append(Sum/VStep3)
            
-            MinSubList3 = 0 if len(SubList3) == 0 else min(SubList3)
-            MaxSubList3 = 0 if len(SubList3) == 0 else max(SubList3)
             MinSubList7 = 0 if len(SubList7) == 0 else min(SubList7)
             MaxSubList7 = 0 if len(SubList7) == 0 else max(SubList7)
-            MinSubList8 = 0 if len(SubList8) == 0 else min(SubList8)
-            MaxSubList8 = 0 if len(SubList8) == 0 else max(SubList8)
             SubList7.insert(0, MinSubList7)
             SubList7.append(MinSubList7)
             TNPeaks7 = []
             if len(SubList) < 2.5*CharachterWidth:
                 TNPeaks7 += [math.floor(len(SubList7)/2), ]
-            TPeaks3, _ = find_peaks(SubList3, height = MinSubList3 + 0.7*(MaxSubList3 - MinSubList3))
             TPeaks7, _ = find_peaks(SubList7, height = MinSubList7 + 0.5*(MaxSubList7 - MinSubList7))
-            TPeaks8, _ = find_peaks(SubList8, height = MinSubList8 + 0.7*(MaxSubList8 - MinSubList8))
-            TPeaks3 = list(TPeaks3)
-            for index in range(len(TPeaks3)):
-                TPeaks3[index] = TPeaks3[index] + trail3
-            Peaks3 = Peaks3 + TPeaks3
             for index in range(len(TPeaks7)):
                 TPeaks7[index] = TPeaks7[index] + trail7
             for index in range(len(TNPeaks7)):
                 TNPeaks7[index] = TNPeaks7[index] + trail7
             NPeaks7 += TNPeaks7
-            for index in range(len(TPeaks8)):
-                TPeaks8[index] = TPeaks8[index] + trail8
             Peaks7 = Peaks7 + list(TPeaks7)
-            Peaks8 = Peaks8 + list(TPeaks8)
 
-            VerSums3 = VerSums3 + SubList3
             VerSums7 = VerSums7 + SubList7
-            VerSums8 = VerSums8 + SubList8
             VerSumsT += [SubList7, ]
-            trail3 += len(SubList3)
             trail7 += len(SubList7)
-            trail8 += len(SubList8)
-        # VerSums3.insert(0, min(VerSums3))
         VerSums7.insert(0, min(VerSums7))
-        # VerSums8.insert(0, min(VerSums8))
-        # VerSums3.append(min(VerSums3))
         VerSums7.append(min(VerSums7))
-        # VerSums8.append(min(VerSums8))
-        # for index in range(len(Peaks3)):
-            # Peaks3[index] += 1
-        # for index in range(len(Peaks7)):
-            # Peaks7[index] += 1
-        # for index in range(len(Peaks8)):
-            # Peaks8[index] += 1
     else:
-        VStep1 = math.floor(Fac1 * CharachterWidth)
         VStep2 = math.floor(Fac2 * CharachterWidth)
-        VStep3 = math.floor(Fac3 * CharachterWidth)
-        VStep1 = 3 if VStep1 == 0 else VStep1
         VStep2 = 3 if VStep2 == 0 else VStep2
-        VStep3 = 3 if VStep3 == 0 else VStep3
-        for index in range(0, len(VerSums5) - VStep1, VStep1):
-            Sum = 0
-            for index2 in range(0, VStep1):
-                Sum += VerSums5[index + index2]
-            VerSums3.append(Sum/VStep1)
         for index in range(0, len(VerSums5) - VStep2, VStep2):
             Sum = 0
             for index2 in range(0, VStep2):
                 Sum += VerSums5[index + index2]
             VerSums7.append(Sum/VStep2)
-        for index in range(0, len(VerSums5) - VStep3, VStep3):
-            Sum = 0
-            for index2 in range(0, VStep3):
-                Sum += VerSums5[index + index2]
-            VerSums8.append(Sum/VStep3)
         Peaks7, _ = find_peaks(VerSums7, min(VerSums7) + 0.5*(max(VerSums7) - min(VerSums7)))
-        VerSums3.insert(0, min(VerSums3))
         VerSums7.insert(0, min(VerSums7))
-        VerSums8.insert(0, min(VerSums8))
-        VerSums3.append(min(VerSums3))
         VerSums7.append(min(VerSums7))
-        VerSums8.append(min(VerSums8))
+    s.append(time.time()) #7
 
 
 
@@ -299,7 +211,6 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
 
 
     
-    s_2b = time.time()
     #Peaks2, _ = find_peaks(VerSums3, height = 0.5*max(VerSums3))
     
     Slice = True
@@ -356,5 +267,7 @@ def Main(file, LogOutput, Complex, Demo, PklOutput):
         plt.show()
         fig.tight_layout()
     
+    if timer:
+        pickle.dump(np.diff(s), open("Times.pkl", "wb+"))
     Output = "%02d" % len(NPeaks7) 
     return Output
