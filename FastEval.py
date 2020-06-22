@@ -32,7 +32,7 @@ t_begin = time.time()
 for index in tqdm.tqdm(range(0, len(Files))):
     file = Files[index]
     try:
-        Output = Main(file, False, True, False, False)
+        Output = Main(file, False, True, False, False, True)
         Times.append(pickle.load(open("Times.pkl", "rb")))
         if not(Output == Answers[index][0:2]):
             Failures.append(file)
@@ -52,6 +52,8 @@ sys.stdout.flush()
 TimesAnswer = input()
 TimesAnswer = True if TimesAnswer == "y" else False
 if TimesAnswer:
+    for element in Times:
+        print(list(element))
     TimesResult = [0, ] * len(Times[0])
     for element in Times:
         for index in range(0, len(element)):

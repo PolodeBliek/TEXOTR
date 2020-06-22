@@ -36,33 +36,35 @@ if type(FilestoRun) == str:
 print(FilestoRun)
 
 if len(FilestoRun) == 1:
-    Output = Main(FilestoRun[0],  False, True, True, False, True)
+    Output = Main(FilestoRun[0],  False, True, True, False)
 else:
     sys.stdout.write("Show Results? (y/n)")
     sys.stdout.flush()
     showResult = input()
     showResult = True if showResult == "y" else False
     for file in FilestoRun:
-        sys.stdout.write("\n" + str(file) +  "\tPROCESSING")
-        sys.stdout.flush()
+        #sys.stdout.write("\n" + str(file) +  "\tPROCESSING")
+        #sys.stdout.flush()
         try:
             t_begin = time.time()
-            Output = Main(file, False, True, showResult, False)
+            Output = Main(file, False, True, showResult, False, True)
             t_end = time.time()
+            print("SNATCHED FROM PKL: ", list(pickle.load(open("Times.pkl", "rb"))))
+            print("\n")
             if Output == Answers[Files.index(file)][0:2]:
                 result = "SUCCES"
             elif Answers[Files.index(file)] == "COMPLEX":
                 result = "COMPLEX"
             else:
                 result = "FAILURE"
-            sys.stdout.write("\r" + str(file) + "\t" + result + "    ")
-            sys.stdout.flush()
-            if result == "SUCCES":
-                sys.stdout.write("\t" + str(t_end - t_begin))
-                sys.stdout.flush()
-            if result == "FAILURE":
-                sys.stdout.write("\t" + Output + " vs " + Answers[Files.index(file)])
-                sys.stdout.flush()
+            #sys.stdout.write("\r" + str(file) + "\t" + result + "    ")
+            #sys.stdout.flush()
+            #if result == "SUCCES":
+                #sys.stdout.write("\t" + str(t_end - t_begin))
+                #sys.stdout.flush()
+            #if result == "FAILURE":
+                #sys.stdout.write("\t" + Output + " vs " + Answers[Files.index(file)])
+                #sys.stdout.flush()
         except:
             sys.stdout.write("\r" + str(file) + "\tERROR    ")
             sys.stdout.flush()

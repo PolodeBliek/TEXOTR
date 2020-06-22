@@ -40,16 +40,22 @@ def Main(file, LogOutput, Complex, Demo, PklOutput, timer = False):
     EmptyHorSlices = []
     EmptyVerSlices = []
     AllPixels = []
-    for index in range(height):
-        HorSlices.append(list(Table[index]))
-    for index in range(width):
-        VerSlices.append(Table[:, index])
-    for index in range(height):
-        if max(HorSlices[index])-min(HorSlices[index])<0.1:
-            EmptyHorSlices.append(index)
-    for index in range(width):
-        if max(VerSlices[index])-min(VerSlices[index])<0.1:
-            EmptyVerSlices.append(index)
+    HorSlices = [None,]* height
+    HorSlices = Table
+    VerSlices = [None,]* width
+    VerSlices = Table.T
+    VerSlices = list(map(list, VerSlices))
+    HorSlices = list(map(list, HorSlices))
+    MaxHorSlices = list(map(max, HorSlices))
+    MinHorSlices = list(map(min, HorSlices))
+    MaxVerSlices = list(map(max, VerSlices))
+    MinVerSlices = list(map(min, VerSlices))
+    DiffHorSlices = np.subtract(MaxHorSlices, MinHorSlices)
+    DiffVerSlices = np.subtract(MaxVerSlices, MinVerSlices)
+    EmptyHorSlices = np.where(DiffHorSlices < 0.1)[0].tolist()
+    EmptyVerSlices = np.where(DiffVerSlices < 0.1)[0].tolist()
+
+
     s.append(time.time()) #2
 
 
